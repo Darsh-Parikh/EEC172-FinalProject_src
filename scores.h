@@ -91,16 +91,13 @@ void StoreScore() {
 #define CLHEADER1 "Content-Length: "
 #define CLHEADER2 "\r\n\r\n"
 
-#define DATA_ST_DES_VAR "{"                                                 \
-            "\"state\": {\r\n"                                              \
-                "\"desired\" : {\r\n"                                       \
-                    "\"var\" :\""                                           \
+#define STATE_START "{\r\n\"state\": {\r\n"
+#define STATE_END "}\r\n}\r\n\r\n"
 
-#define DATA_WRAP "\"\r\n"                                                  \
-                "}"                                                         \
-            "}"                                                             \
-        "}\r\n\r\n"
+#define PLAYER_TEMPLATE "\"player%d\": { \"name\": \"%s\", \"score\": %d }"
+#define PLAYER_SEPARATOR ",\r\n"
 
+#define MAX_LEADERBOARD_SIZE 3
 
 int socketID;
 
@@ -108,8 +105,7 @@ int socketID;
 
 static int FetchScoresFromAWS() {
     char acSendBuff[512];
-    char acRecvbuff[1460];
-    char cCLLength[200];
+    char acRecvbuff[1460];          // make this larger?
     char* pcBufHeaders;
     int lRetVal = 0;
 
@@ -122,42 +118,97 @@ static int FetchScoresFromAWS() {
     pcBufHeaders += strlen(CHEADER);
     strcpy(pcBufHeaders, "\r\n\r\n");
 
-    //
-    // Recieve the packet to the server */
-    //
+    // Send request to AWS
     lRetVal = sl_Send(socketID, acSendBuff, strlen(acSendBuff), 0);
-    if(lRetVal < 0) {
-        UART_PRINT("GET failed. Error Number: %i\n\r",lRetVal);
+    if (lRetVal < 0) {
+        UART_PRINT("GET failed. Error Number: %i\n\r", lRetVal);
         sl_Close(socketID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return lRetVal;
     }
-    UART_PRINT("-+-+-+ Trying to Receive\r\n",lRetVal);
+
+    // Receive data from AWS
+    UART_PRINT("-+-+-+ Trying to Receive\r\n");
     lRetVal = sl_Recv(socketID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
-    if(lRetVal < 0) {
-        UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
-        //sl_Close(iSSLSockID);
+    if (lRetVal < 0) {
+        UART_PRINT("Received failed. Error Number: %i\n\r", lRetVal);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-           return lRetVal;
-    }
-    else {
-        acRecvbuff[lRetVal+1] = '\0';
+        return lRetVal;
+    } else {
+        acRecvbuff[lRetVal] = '\0';
         UART_PRINT(acRecvbuff);
         UART_PRINT("\n\r\n\r");
     }
 
+    // Extracting scores from JSON response
+    char* ptr = acRecvbuff;
+    int extractedScores[MAX_LEADERBOARD_SIZE];
+    Buffer_t extractedNames[MAX_LEADERBOARD_SIZE];
+
+    int i = 0;
+    for (i = 0; i < MAX_LEADERBOARD_SIZE; i++) {
+        char name[BUFFER_SIZE] = {0};
+        int score = 0;
+
+        char searchKey[20];
+        sprintf(searchKey, "\"player%d\": { \"name\": \"", i + 1);
+        ptr = strstr(ptr, searchKey);
+        if (!ptr) break;
+
+        ptr += strlen(searchKey);
+        sscanf(ptr, "%[^\"]", name); // Read player name
+
+        ptr = strstr(ptr, "\"score\": ");
+        if (!ptr) break;
+
+        ptr += strlen("\"score\": ");
+        sscanf(ptr, "%d", &score); // Read player score
+
+        extractedScores[i] = score;
+        ClearBuffer(&extractedNames[i]);
+        int j = 0;
+        for (j = 0; j < strlen(name); j++) {
+            AddToBuffer(&extractedNames[i], name[j], 1);
+        }
+    }
+
+    // Updating the local scoreboard
+    CopyBuffer(&scoreBoard1_Name, &extractedNames[0]);
+    scoreBoard1_Score = extractedScores[0];
+
+    CopyBuffer(&scoreBoard2_Name, &extractedNames[1]);
+    scoreBoard2_Score = extractedScores[1];
+
+    CopyBuffer(&scoreBoard3_Name, &extractedNames[2]);
+    scoreBoard3_Score = extractedScores[2];
+
     return 0;
 }
 
-static int SendScoreToAWS() {
-    char data[10];
 
+static int SendScoreToAWS() {
     char acSendBuff[512];
     char acRecvbuff[1460];
     char cCLLength[200];
     char* pcBufHeaders;
     int lRetVal = 0;
+    char data[BUFFER_SIZE];
 
+    // Constructing the JSON-like state string
+    snprintf(data, sizeof(data),
+        STATE_START
+        PLAYER_TEMPLATE PLAYER_SEPARATOR
+        PLAYER_TEMPLATE PLAYER_SEPARATOR
+        PLAYER_TEMPLATE
+        STATE_END,
+        1, scoreBoard1_Name.buf, scoreBoard1_Score,
+        2, scoreBoard2_Name.buf, scoreBoard2_Score,
+        3, scoreBoard3_Name.buf, scoreBoard3_Score
+    );
+
+    int dataLength = strlen(data);
+
+    // Setting up HTTP headers
     pcBufHeaders = acSendBuff;
     strcpy(pcBufHeaders, POSTHEADER);
     pcBufHeaders += strlen(POSTHEADER);
@@ -165,52 +216,41 @@ static int SendScoreToAWS() {
     pcBufHeaders += strlen(HOSTHEADER);
     strcpy(pcBufHeaders, CHEADER);
     pcBufHeaders += strlen(CHEADER);
-    strcpy(pcBufHeaders, "\r\n\r\n");
-
-    int dataLength = strlen(data) + strlen(DATA_ST_DES_VAR) + strlen(DATA_WRAP);
-
     strcpy(pcBufHeaders, CTHEADER);
     pcBufHeaders += strlen(CTHEADER);
     strcpy(pcBufHeaders, CLHEADER1);
-
     pcBufHeaders += strlen(CLHEADER1);
-    sprintf(cCLLength, "%d", dataLength);
 
+    sprintf(cCLLength, "%d", dataLength);
     strcpy(pcBufHeaders, cCLLength);
     pcBufHeaders += strlen(cCLLength);
     strcpy(pcBufHeaders, CLHEADER2);
     pcBufHeaders += strlen(CLHEADER2);
 
-    strcpy(pcBufHeaders, DATA_ST_DES_VAR);
-    pcBufHeaders += strlen(DATA_ST_DES_VAR);
-
+    // Append the data
     strcpy(pcBufHeaders, data);
     pcBufHeaders += strlen(data);
 
-    strcpy(pcBufHeaders, DATA_WRAP);
-    pcBufHeaders += strlen(DATA_WRAP);
-
-    int testDataLength = strlen(pcBufHeaders);
-
+    // Debugging output
     UART_PRINT(acSendBuff);
 
-    // Send the packet to the server */
+    // Send the packet to AWS
     lRetVal = sl_Send(socketID, acSendBuff, strlen(acSendBuff), 0);
-    if(lRetVal < 0) {
-        UART_PRINT("POST failed. Error Number: %i\n\r",lRetVal);
+    if (lRetVal < 0) {
+        UART_PRINT("POST failed. Error Number: %i\n\r", lRetVal);
         sl_Close(socketID);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
         return lRetVal;
     }
+
+    // Receive response from AWS
     lRetVal = sl_Recv(socketID, &acRecvbuff[0], sizeof(acRecvbuff), 0);
-    if(lRetVal < 0) {
-        UART_PRINT("Received failed. Error Number: %i\n\r",lRetVal);
-        //sl_Close(iSSLSockID);
+    if (lRetVal < 0) {
+        UART_PRINT("Received failed. Error Number: %i\n\r", lRetVal);
         GPIO_IF_LedOn(MCU_RED_LED_GPIO);
-           return lRetVal;
-    }
-    else {
-        acRecvbuff[lRetVal+1] = '\0';
+        return lRetVal;
+    } else {
+        acRecvbuff[lRetVal + 1] = '\0';
         UART_PRINT(acRecvbuff);
         UART_PRINT("\n\r\n\r");
     }
@@ -218,6 +258,7 @@ static int SendScoreToAWS() {
     sl_Stop(SL_STOP_TIMEOUT);
     return 0;
 }
+
 
 void InitAWS() {
     long lRetVal = -1;
