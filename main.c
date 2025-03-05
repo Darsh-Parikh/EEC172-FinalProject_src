@@ -38,6 +38,8 @@
 #include "buffers.h"
 #include "web-server.h"
 #include "oled.h"
+#include "console_display.h"
+#include "accelerometer.h"
 
 //-----------------------------
 
