@@ -91,8 +91,8 @@ char DataBuffer[6]; // { Btn1, Btn2,  AccelX, AccelY, TVchar , TVstate }
 void StoreControllerData(
         int button1State,
         int button2State,
-        char accelX,
-        char accelY,
+        int accelX,
+        int accelY,
         char tvBtn,
         int tvBtnSt
 ) {

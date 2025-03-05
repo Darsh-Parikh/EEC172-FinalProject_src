@@ -36,6 +36,9 @@
 #define MINUTE              37    /* Time - minutes */
 #define SECOND              0     /* Time - seconds */
 
+
+#define TICK_RATE_MS   100      // how fast does the internal hardware timer tick
+#define TICK_WAIT_RATE 1        // how many ticks does the system wait before executing it's loop again
 //-------------------
 
 static int set_time() {

@@ -2,6 +2,7 @@
 #define COMMON_ELEMENTS_H
 
 #include "scores.h"
+#include <stdlib.h>
 
 //------------------------------------------------------------
 
