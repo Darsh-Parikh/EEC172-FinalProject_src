@@ -121,6 +121,7 @@ int display() {
             GetAccel(X_Axis, X_Accel_PixelLimit),
             GetAccel(Y_Axis, Y_Accel_PixelLimit)
         };
+        Report("X: %d ; Y: %d\r\n", ballAccel[0], ballAccel[1]);
         MoveBall(ballLoc, ballVel, ballAccel, 0);
         player.x_pos = ballLoc[0];
         player.y_pos = ballLoc[1];
