@@ -38,6 +38,7 @@
 #include "console_display.h"
 #include "accelerometer.h"
 #include "game_states.h"
+#include "controller.h"
 
 //*****************************************************************************
 //                 GLOBAL  -- Start
@@ -113,7 +114,7 @@ void main() {
 //------------------------------------------------
 
 void controller_main() {
-    InitComm(0);
+    InitComm(1); // change to 1 once done debugging
 
     SysTickInit();
     InitIR();
@@ -133,7 +134,7 @@ void controller_main() {
 
         // Send over UART
 
-        ClearTicks();
+        Control();
     }
 }
 

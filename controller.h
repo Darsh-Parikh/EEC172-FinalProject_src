@@ -8,11 +8,16 @@
 
 #ifndef EEC172_FINALPROJECT_SRC_CONTROLLER_H_
 #define EEC172_FINALPROJECT_SRC_CONTROLLER_H_
+
+int control() {
     GPIODirModeSet(GPIOA1_BASE, 0x20, GPIO_DIR_MODE_IN);
     char accelX;
     char accelY;
     int button1state;
     int button2state;
+    char tv_press;
+    int ret_val;
+    int new_press;
     while (1) {
         WaitTicks(TICK_WAIT_RATE);
         ClearTicks();
@@ -25,8 +30,10 @@
         char accelX = GetAccel(X_Axis, X_Accel_PixelLimit),
         char accelY = GetAccel(Y_Axis, Y_Accel_PixelLimit);
         // read IR
-
+        ret_val = GetTVPress(&tv_press);
+        tvBtnSt = (ret_val != -1);
         // Send over UART
         StoreControllerData(button1State, button2State, accelX, accelY, tvBtn, tvBtnSt);
-
+    }
+}
 #endif /* EEC172_FINALPROJECT_SRC_CONTROLLER_H_ */
