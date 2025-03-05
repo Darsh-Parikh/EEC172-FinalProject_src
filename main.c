@@ -32,7 +32,6 @@
 
 // Custom includes
 #include "../utils/network_utils.h"
-#include "top_header.h"
 #include "tv.h"
 #include "timing.h"
 #include "buffers.h"
@@ -41,13 +40,52 @@
 #include "console_display.h"
 #include "accelerometer.h"
 
+//*****************************************************************************
+//                 GLOBAL  -- Start
+//*****************************************************************************
+
+#if defined(ccs)
+extern void (* const g_pfnVectors[])(void);
+#endif
+#if defined(ewarm)
+extern uVectorEntry __vector_table;
+#endif
+volatile int g_iCounter = 0;
+
+extern void (* const g_pfnVectors[])(void);
+
+static void BoardInit(void) {
+/* In case of TI-RTOS vector table is initialize by OS itself */
+#ifndef USE_TIRTOS
+  //
+  // Set vector table base
+  //
+#if defined(ccs)
+    MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
+#endif
+#if defined(ewarm)
+    MAP_IntVTableBaseSet((unsigned long)&__vector_table);
+#endif
+#endif
+    //
+    // Enable Processor
+    //
+    MAP_IntMasterEnable();
+    MAP_IntEnable(FAULT_SYSTICK);
+
+    PRCMCC3200MCUInit();
+}
+
+//*****************************************************************************
+//                 GLOBAL  -- End: df
+//*****************************************************************************
+
 //-----------------------------
 
 #define CONTROLLER  0
 #define CONSOLE     1
 
 #define TARGET      CONTROLLER
-
 
 void controller_main();
 void console_main();
@@ -90,3 +128,4 @@ void old_main() {
         Report("????????\r\n");
     }
 }
+

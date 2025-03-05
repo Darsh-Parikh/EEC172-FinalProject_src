@@ -8,8 +8,12 @@
 #ifndef EEC172_FINALPROJECT_SRC_CONSOLE_DISPLAY_H_
 #define EEC172_FINALPROJECT_SRC_CONSOLE_DISPLAY_H_
 
-#include enemy.h
-#include common_elements.h
+#include "enemy.h"
+#include "common_elements.h"
+#include "accelerometer.h"
+
+#define PLAYER_TYPE 0
+#define PLAYER_PROJECTILE 0
 
 //****************************************************************************
 //************************  Ball Motion Functions ****************************
@@ -102,9 +106,9 @@ int display() {
     int ballVel[2] = {0,0};
     drawRect(0,0,127,127,Color565(100,100,100));
     while(1) {
-        drawEntity(player);
-        tickIncrement();
-        clearEntity(player);
+        drawEntity(&player);
+        // tickIncrement();
+        clearEntity(&player);
         int ballAccel[2] = {
             GetAccel(X_Axis, X_Accel_PixelLimit),
             GetAccel(Y_Axis, Y_Accel_PixelLimit)
