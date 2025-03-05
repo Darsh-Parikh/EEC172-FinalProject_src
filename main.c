@@ -82,7 +82,7 @@ static void BoardInit(void) {
 //-----------------------------
 
 #define TICK_RATE_MS   100      // how fast does the internal hardware timer tick
-#define TICK_WAIT_RATE 10       // how many ticks does the system wait before executing it's loop again
+#define TICK_WAIT_RATE 1        // how many ticks does the system wait before executing it's loop again
 
 #define CONTROLLER_MCU  0
 #define CONSOLE_MCU     1
@@ -125,8 +125,6 @@ void controller_main() {
         WaitTicks(TICK_WAIT_RATE);
         ClearTicks();
 
-        Report("1 run, took %d * 100 ms\r\n", timerTicks);
-
         // read Buttons
 
         // read Accelerometer
@@ -134,9 +132,9 @@ void controller_main() {
         // read IR
 
         // Send over UART
+
+        ClearTicks();
     }
-
-
 }
 
 void console_main() {
@@ -183,6 +181,9 @@ void console_main() {
                }
                break;
         }
+
+
+        ClearTicks();
     }
 }
 
