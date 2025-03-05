@@ -48,7 +48,7 @@ void InitEnemySystem(int minSpawnPoint, int maxSpawnPoint) {
 }
 
 void SpawnEnemies(int topHeight) {
-    if (num_enemies = MAX_ENEMIES) {
+    if (num_enemies == MAX_ENEMIES) {
         return;
     }
 

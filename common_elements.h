@@ -1,7 +1,7 @@
 #ifndef COMMON_ELEMENTS_H
 #define COMMON_ELEMENTS_H
 
-#define MAX_SHOTS_PER_ENEMY 3   // Each enemy can have up to 3 active shots
+#define MAX_SHOTS_PER_ENEMY 4   // Each enemy can have up to 3 active shots
 
 struct Projectile {
     int x_pos;
@@ -29,6 +29,8 @@ struct Entity {
    int time_since_fire;
    int time_since_spawn;
    int active;
+   int num_shots;
+   int fire_rate;
    Projectile shots[MAX_SHOTS_PER_ENEMY];
 };
 typedef struct Entity Entity;
