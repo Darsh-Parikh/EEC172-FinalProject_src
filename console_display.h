@@ -8,12 +8,9 @@
 #ifndef EEC172_FINALPROJECT_SRC_CONSOLE_DISPLAY_H_
 #define EEC172_FINALPROJECT_SRC_CONSOLE_DISPLAY_H_
 
-#include "enemy.h"
+#include "timing.h"
 #include "common_elements.h"
 #include "accelerometer.h"
-
-#define PLAYER_TYPE 0
-#define PLAYER_PROJECTILE 0
 
 //****************************************************************************
 //************************  Ball Motion Functions ****************************
@@ -22,52 +19,14 @@
 #define X_Accel_PixelLimit 5
 #define Y_Accel_PixelLimit 5
 
-void MoveBall(int ballLoc[2], int ballVel[2], int ballAccel[2], int includeVel) {
-    int timeDelay = 1;
-
-    ballVel[0] += ballAccel[0] * timeDelay;
-    ballVel[1] += ballAccel[1] * timeDelay;
-
-    ballLoc[0] += includeVel*(ballVel[0] * timeDelay) + (ballAccel[0] * timeDelay * timeDelay);
-    ballLoc[1] += includeVel*(ballVel[1] * timeDelay) + (ballAccel[1] * timeDelay * timeDelay);
-}
-
-int ConstrainBall(int ballLoc[2], int x_lim, int y_lim) {
-    int x = ballLoc[0], y = ballLoc[1];
-
-    int retVal = 0;
-
-    if (x < (-1 * x_lim)) {
-        ballLoc[0] = (-1 * x_lim);
-        retVal = 1;
-    } else if (x > x_lim) {
-        ballLoc[0] = x_lim;
-        retVal = 1;
-    }
-
-    if (y < (-1 * y_lim)) {
-        ballLoc[1] = (-1 * y_lim);
-        retVal = 1;
-    } else if (y > y_lim) {
-        ballLoc[1] = y_lim;
-        retVal = 1;
-    }
-
-    return retVal;
-}
-
 //-----------------------------------------------------------------------------
 
 void drawEntity(Entity *entity) {
-    if (entity->type == PLAYER_TYPE) {
-        fillCircle(entity->x_pos,entity->y_pos,entity->radius,entity->color);
-    }
+    fillCircle(entity->x_pos,entity->y_pos,entity->radius,entity->color);
 }
 
 void clearEntity(Entity *entity) {
-    if (entity->type == PLAYER_TYPE) {
-        fillCircle(entity->x_pos,entity->y_pos,entity->radius,BLACK);
-    }
+    fillCircle(entity->x_pos,entity->y_pos,entity->radius,BLACK);
 }
 
 void drawText(int x, int y, char* text, int color, int bg, int size){
@@ -95,54 +54,6 @@ void drawFont(int x, int y, int color, int bg, int size){
     }
 }
 
-volatile int tick_count = 0;
-int tick_time = 80000000/100;
-
-void tickIncrement() {
-    MAP_UtilsDelay(tick_time);
-    tick_count++;
-}
-
-// returns index of next shot to be activated
-int findNextShot(Entity *entity) {
-    int index = 0;
-    int num_found = 0;
-    while(num_found <= entity->num_shots && index < MAX_SHOTS_PER_ENEMY) {
-        if (num_found == entity->num_shots) return index;
-        if (entity->shots[index].active) num_found++;
-        index++;
-    }
-    return -1;
-}
-
-// activate the next shot
-int shoot(Entity *entity) {
-    int index = findNextShot(entity);
-    if(index == -1) return -1;
-    entity->shots[index].x_pos = entity->x_pos;
-    if(entity->type == PLAYER_TYPE) {
-        entity->shots[index].y_pos = entity->y_pos - entity->radius;
-    } else {}
-    entity->shots[index].active = 1;
-    entity->shots[index].time_since_spawn = 0;
-    return 0;
-}
-
-// initialize all the shots
-void shotInit(Entity *entity) {
-    int i = 0;
-    for(i; i < MAX_SHOTS_PER_ENEMY; i++) {
-        if(entity->type == PLAYER_TYPE){
-            entity->shots[i].radius = 2;
-            entity->shots[i].speed = 4;
-            entity->shots[i].type = PLAYER_PROJECTILE;
-            entity->shots[i].color = Color565(200,0,0);
-            entity->shots[i].active = 0;
-        }
-    }
-    return;
-}
-
 void drawShots(Entity *entity) {
     int i = 0;
     if(!entity->num_shots) return;
@@ -163,23 +74,7 @@ void clearShots(Entity *entity) {
     }
 }
 
-void moveShots(Entity *entity) {
-    int i = 0;
-    int num_moved = 0;
-    for(i; i < MAX_SHOTS_PER_ENEMY; i++) {
-        if(!entity->shots[i].active) continue;
-        if(num_moved >= entity->num_shots) break;
-        num_moved++;
-        if(entity->type == PLAYER_TYPE){
-            entity->shots[i].y_pos -= entity->shots[i].speed;
-        }
-        if((entity->shots[i].y_pos > 125 - entity->shots[i].radius) || (entity->shots[i].y_pos < entity->shots[i].radius + 1)) {
-            entity->shots[i].active = 0;
-            entity->num_shots--;
-        }
-    }
-    return;
-}
+//----------------------------------------------------------
 
 int display() {
     struct Entity player;

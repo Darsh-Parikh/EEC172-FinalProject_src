@@ -54,7 +54,19 @@ static int set_time() {
     return SUCCESS;
 }
 
-//------------------------------
+//------------------------------------------------------------------------
+
+volatile int tick_count = 0;
+int tick_time = 80000000/100;
+
+void tickIncrement() {
+    MAP_UtilsDelay(tick_time);
+    tick_count++;
+}
+
+//------------------------------------------------------------------------
+
+
 
 
 #endif

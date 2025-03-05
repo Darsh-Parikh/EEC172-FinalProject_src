@@ -6,6 +6,7 @@
 #include "../oled/Adafruit_OLED.h"
 #include "../oled/Adafruit_SSD1351.h"
 #include "../oled/glcdfont.h"
+#include "buffers.h"
 
 //*****************************************************************************
 //                 OLED SYSTEMS

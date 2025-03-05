@@ -34,11 +34,10 @@
 #include "../utils/network_utils.h"
 #include "tv.h"
 #include "timing.h"
-#include "buffers.h"
-#include "web-server.h"
 #include "oled.h"
 #include "console_display.h"
 #include "accelerometer.h"
+#include "game_states.h"
 
 //*****************************************************************************
 //                 GLOBAL  -- Start
@@ -82,10 +81,10 @@ static void BoardInit(void) {
 
 //-----------------------------
 
-#define CONTROLLER  0
-#define CONSOLE     1
+#define CONTROLLER_MCU  0
+#define CONSOLE_MCU     1
 
-#define TARGET      CONSOLE
+#define TARGET      CONSOLE_MCU
 
 void controller_main();
 void console_main();
@@ -115,14 +114,69 @@ void controller_main() {
 
     SysTickInit();
     InitIR();
+
+    I2C_IF_Open(I2C_MASTER_MODE_FST);   // setup I2C for Accelerometer
+
+    while (1) {
+        // wait for a tick
+
+        // read Buttons
+
+        // read Accelerometer
+
+        // read IR
+
+        // Send over UART
+
+        // clear any mid-run ticks
+    }
+
+
 }
 
 void console_main() {
     InitComm(1);
-    //InitAWS();
-    I2C_IF_Open(I2C_MASTER_MODE_FST);   // setup I2C
+    // InitAWS();
     InitOLED();
-    display();
+    // display();
+
+    GameStates state = START_SCREEN;
+    ClearBuffer(&playerName);
+    // FetchScoresFromAWS();
+
+    while (1) {
+        // wait for a tick
+
+        int ret_val = -1;
+        switch (state) {
+            case START_SCREEN:
+               ret_val = Run_StartScreen();
+               if (ret_val == 1) {
+                   // InitGame();
+                   state = GAME_LOOP;
+               }
+               break;
+            case GAME_LOOP:
+               ret_val = Run_GameLoop();
+               if (ret_val == 1) {
+                   state = SCOREBOARD;
+               }
+               break;
+            case SCOREBOARD:
+               ret_val = Run_ScoreBoard();
+               if (ret_val == 2) {
+                   ClearBuffer(&playerName);
+                   state = START_SCREEN;
+               } else if (ret_val == 1) {
+                   // InitGame();
+                   state = GAME_LOOP;
+
+               }
+               break;
+        }
+
+        // clear any mid-run ticks
+    }
 }
 
 void old_main() {

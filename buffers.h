@@ -67,6 +67,21 @@ void PrintBuffer(Buffer_t *buff) {
     Report("}\r\n");
 }
 
+void CopyBuffer(Buffer_t *dst, Buffer_t *src) {
+    dst->pos = src->pos;
+    dst->size = src->size;
+    dst->terminator = src->terminator;
+
+    int i = 0;
+    for (;;i++) {
+        dst->buf[i] = src->buf[i];
+
+        if (src->buf[i] == src->terminator) {
+            break;
+        }
+    }
+}
+
 //--------------------------------
 //         CONTROLLER DATA
 //--------------------------------
