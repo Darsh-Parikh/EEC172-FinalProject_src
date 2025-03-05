@@ -87,7 +87,7 @@ static void BoardInit(void) {
 #define CONTROLLER_MCU  0
 #define CONSOLE_MCU     1
 
-#define TARGET          CONTROLLER_MCU
+#define TARGET          CONSOLE_MCU
 
 void controller_main();
 void console_main();
@@ -141,7 +141,7 @@ void console_main() {
     InitComm(1);
     InitOLED();
 
-    // I2C_IF_Open(I2C_MASTER_MODE_FST); display();     // <-- Uncomment this to test dispaly working
+    I2C_IF_Open(I2C_MASTER_MODE_FST); display();     // <-- Uncomment this to test dispaly working
 
     GameStates state = GAME_LOOP;
     ClearBuffer(&playerName);

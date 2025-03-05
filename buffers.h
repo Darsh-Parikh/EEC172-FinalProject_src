@@ -101,7 +101,7 @@ void StoreControllerData(
     DataBuffer[2] = accelX;
     DataBuffer[3] = accelY;
     DataBuffer[4] = tvBtn;
-    DataBuffer[5] = tvBtnSt;
+    DataBuffer[5] = tvBtnSt; //
 }
 
 void ClearControllerData() {
