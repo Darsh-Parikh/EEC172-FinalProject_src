@@ -104,6 +104,12 @@ void PinMuxConfig(void)
     GPIODirModeSet(GPIOA1_BASE, 0x20, GPIO_DIR_MODE_OUT);
 
     //
+    // Configure PIN_15 for GPIO Input
+    //
+    PinTypeGPIO(PIN_15, PIN_MODE_0, false);
+    GPIODirModeSet(GPIOA2_BASE, 0x40, GPIO_DIR_MODE_IN);
+
+    //
     // Configure PIN_18 for GPIO Output
     //
     PinTypeGPIO(PIN_18, PIN_MODE_0, false);
