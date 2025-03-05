@@ -71,14 +71,14 @@ void main() {
 //------------------------------------------------
 
 void controller_main() {
-    InitComm();
+    InitComm(0);
 
     SysTickInit();
     InitIR();
 }
 
 void console_main() {
-    InitComm();
+    InitComm(1);
     InitAWS();
 
 }

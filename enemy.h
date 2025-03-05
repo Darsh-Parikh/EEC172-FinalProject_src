@@ -65,7 +65,7 @@ void MoveEnemies() {
 /**
  * Check for collisions between player shots and enemies.
  */
-void CheckEnemyCollisions(Shot *playerShots) {
+void CheckEnemyCollisions(Projectile *playerShots) {
     for (int i = 0; i < MAX_PLAYER_SHOTS; i++) {
         if (!playerShots[i].active) {
             continue;

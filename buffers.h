@@ -75,31 +75,27 @@ char DataBuffer[6]; // { Btn1, Btn2,  AccelX, AccelY, TVchar , TVstate }
 
 void StoreControllerData(
         int button1State,
-        int button1State,
+        int button2State,
         char accelX,
         char accelY,
         char tvBtn,
         int tvBtnSt
 ) {
-    DataBuffer = {
-                  button1State,
-                  button2State,
-                  accelX,
-                  accelY,
-                  tvBtn,
-                  tvBtnSt
-    };
+    DataBuffer[0] = button1State;
+    DataBuffer[1] = button2State;
+    DataBuffer[2] = accelX;
+    DataBuffer[3] = accelY;
+    DataBuffer[4] = tvBtn;
+    DataBuffer[5] = tvBtnSt;
 }
 
 void ClearControllerData() {
-    DataBuffer = {
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '1',
-                  '0'
-    };
+    DataBuffer[0] = '0';
+    DataBuffer[1] = '0';
+    DataBuffer[2] = '0';
+    DataBuffer[3] = '0';
+    DataBuffer[4] = '1';
+    DataBuffer[5] = '0';
 }
 
 //--------------------------------
@@ -110,17 +106,22 @@ void ClearControllerData() {
 #define COMMS_UART      UARTA1_BASE
 #define COMMS_PERIPH    PRCM_UARTA1
 
+#define MESSAGE_END_CHAR '!'
+
 void CommsUARTInterruptHandler() {
     if (UARTIntStatus(COMMS_UART, 0) & UART_INT_RX) {
         UARTIntClear(COMMS_UART, UART_INT_RX);
 
         char c;
 
-        for (int i = 0; i < 6; i) {
+        int i = 0;
+        for (i = 0; i < 6; i++) {
             c = UARTCharGet(COMMS_UART);
 
             if (((c > '0') && (c < '9')) || ((c > 'A') && (c < 'Z'))) {
                 DataBuffer[i] = c;
+            } else {
+                i--;
             }
         }
     }
@@ -148,8 +149,9 @@ void InitComm(int enableInterrupts) {
 }
 
 void CommsTransferControllerData() {
-    for (int i = 0; i < 6; i++) {
-        MAP_UARTCharPut(COMMS_UART, str[i]);
+    int i = 0;
+    for (i = 0; i < 6; i++) {
+        MAP_UARTCharPut(COMMS_UART, DataBuffer[i]);
     }
 }
 
