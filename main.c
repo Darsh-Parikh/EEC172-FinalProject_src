@@ -84,51 +84,7 @@ void console_main() {
 }
 
 void old_main() {
-    InitComm();
-
-    SysTickInit();
-    InitIR();
-
-    InitAWS();
-
-    char tv_press;
     while (1) {
-        int ret_val = GetTVPress(&tv_press);
-        int new_press = (ret_val != -1);
-
-        if (new_press) {
-            if (tv_press == 'l') {
-                Report("Sending: ");
-                SendMessageToAWS(&BufferInternal);
-                CommsTransmitBuffer(&BufferInternal);
-                ClearBuffer(&BufferInternal);
-            } else if (tv_press == 'm') {
-                Report("Deleting: ");
-                ClearMessage(&BufferInternal,0,0);
-                RemoveLastInBuffer(&BufferInternal);
-            } else {
-                if ((tv_press == 1) || (ret_val == 0)) {
-                    Report("Editing: ");
-                    EditLastInBuffer(&BufferInternal, tv_press);
-                } else if (ret_val == 1) {
-                    Report("Adding: ");
-                    AddToBuffer(&BufferInternal, tv_press, 0);
-                }
-            }
-
-            PrintBuffer(&BufferInternal);
-            DrawMessage(&BufferInternal,0,0);
-        }
-
-        if (new_message_recieved) {
-            Report("New Message Received: ");
-            PrintBuffer(&BufferExternal);
-            DrawMessage(&BufferExternal,0,64);
-
-            ClearBuffer(&BufferExternal);
-            new_message_recieved = 0;
-        }
+        Report("????????\r\n");
     }
 }
-
-

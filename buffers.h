@@ -2,7 +2,7 @@
 #define BUFFER_H
 
 //--------------------------------
-//         BUFFERS
+//         NAME BUFFER
 //--------------------------------
 
 #define BUFFER_SIZE 128
@@ -14,8 +14,7 @@ typedef struct {
     char terminator;
 } Buffer_t;
 
-Buffer_t BufferInternal = {0, {}, BUFFER_SIZE-1, '\0'};
-Buffer_t BufferExternal = {0, {}, BUFFER_SIZE-1, '\0'};
+Buffer_t PlayerName = {0, {}, BUFFER_SIZE-1, '\0'};
 
 void ClearBuffer(Buffer_t *buff) {
     buff->pos = 0;
@@ -69,6 +68,41 @@ void PrintBuffer(Buffer_t *buff) {
 }
 
 //--------------------------------
+//         CONTROLLER DATA
+//--------------------------------
+
+char DataBuffer[6]; // { Btn1, Btn2,  AccelX, AccelY, TVchar , TVstate }
+
+void StoreControllerData(
+        int button1State,
+        int button1State,
+        char accelX,
+        char accelY,
+        char tvBtn,
+        int tvBtnSt
+) {
+    DataBuffer = {
+                  button1State,
+                  button2State,
+                  accelX,
+                  accelY,
+                  tvBtn,
+                  tvBtnSt
+    };
+}
+
+void ClearControllerData() {
+    DataBuffer = {
+                  '0',
+                  '0',
+                  '0',
+                  '0',
+                  '1',
+                  '0'
+    };
+}
+
+//--------------------------------
 //         COMMS
 //--------------------------------
 
@@ -76,29 +110,25 @@ void PrintBuffer(Buffer_t *buff) {
 #define COMMS_UART      UARTA1_BASE
 #define COMMS_PERIPH    PRCM_UARTA1
 
-#define MESSAGE_END_CHAR '!'
-volatile int new_message_recieved = 0;
-
 void CommsUARTInterruptHandler() {
     if (UARTIntStatus(COMMS_UART, 0) & UART_INT_RX) {
         UARTIntClear(COMMS_UART, UART_INT_RX);
 
-        char c = UARTCharGet(COMMS_UART);
+        char c;
 
-        if (c == MESSAGE_END_CHAR) {
-            new_message_recieved = 1;
-        } else if (((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'Z'))) {
-            AddToBuffer(&BufferExternal, c, 1);
-            new_message_recieved = 0;
+        for (int i = 0; i < 6; i) {
+            c = UARTCharGet(COMMS_UART);
+
+            if (((c > '0') && (c < '9')) || ((c > 'A') && (c < 'Z'))) {
+                DataBuffer[i] = c;
+            }
         }
-
-        // MAP_UARTCharPut(UARTA0_BASE, c);
     }
 
     return;
 }
 
-void InitComm() {
+void InitComm(int enableInterrupts) {
   MAP_UARTConfigSetExpClk(
           COMMS_UART,MAP_PRCMPeripheralClockGet(COMMS_PERIPH),
           COMMS_UART_BAUD,
@@ -108,10 +138,19 @@ void InitComm() {
   UARTEnable(COMMS_UART);
 
   UARTFIFOEnable(COMMS_UART);
-  UARTFIFOLevelSet(COMMS_UART, UART_FIFO_TX7_8, UART_FIFO_RX1_8);
 
-  UARTIntEnable(COMMS_UART, UART_INT_RX);
-  UARTIntRegister(COMMS_UART, &CommsUARTInterruptHandler);
+  if (enableInterrupts) {
+      UARTFIFOLevelSet(COMMS_UART, UART_FIFO_TX7_8, UART_FIFO_RX1_8);
+
+      UARTIntEnable(COMMS_UART, UART_INT_RX);
+      UARTIntRegister(COMMS_UART, &CommsUARTInterruptHandler);
+  }
+}
+
+void CommsTransferControllerData() {
+    for (int i = 0; i < 6; i++) {
+        MAP_UARTCharPut(COMMS_UART, str[i]);
+    }
 }
 
 void CommsTransmitBuffer(Buffer_t *buff) {
@@ -128,16 +167,6 @@ void CommsTransmitBuffer(Buffer_t *buff) {
         MAP_UARTCharPut(COMMS_UART, c);
     }
     MAP_UARTCharPut(COMMS_UART, MESSAGE_END_CHAR);
-}
-
-void CommsTransmitString(char *str) {
-    int i = 0;
-    int busy = UARTBusy(COMMS_UART);
-    int poss = UARTSpaceAvail(COMMS_UART);
-    while (str[i]) {
-        MAP_UARTCharPut(COMMS_UART, str[i]);
-        i++;
-    }
 }
 
 #endif

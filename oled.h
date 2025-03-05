@@ -23,6 +23,9 @@
 #define YELLOW          0xFFE0
 #define WHITE           0xFFFF
 
+#define OLED_MIN_PX 0
+#define OLED_MAX_PX 100
+
 unsigned long ucTxBuffNdx, ucRxBuffNdx;
 
 void InitOLED() {
