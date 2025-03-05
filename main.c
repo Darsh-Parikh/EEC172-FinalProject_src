@@ -81,6 +81,9 @@ static void BoardInit(void) {
 
 //-----------------------------
 
+#define TICK_RATE_MS   100      // how fast does the internal hardware timer tick
+#define TICK_WAIT_RATE 1        // how many ticks does the system wait before executing it's loop again
+
 #define CONTROLLER_MCU  0
 #define CONSOLE_MCU     1
 
@@ -117,8 +120,9 @@ void controller_main() {
 
     I2C_IF_Open(I2C_MASTER_MODE_FST);   // setup I2C for Accelerometer
 
+    InitTimer(TICK_RATE_MS);
     while (1) {
-        // wait for a tick
+        WaitTicks(TICK_WAIT_RATE);
 
         // read Buttons
 
@@ -128,7 +132,7 @@ void controller_main() {
 
         // Send over UART
 
-        // clear any mid-run ticks
+        ClearTicks();
     }
 
 
@@ -136,16 +140,19 @@ void controller_main() {
 
 void console_main() {
     InitComm(1);
-    // InitAWS();
     InitOLED();
-    // display();
+
+    // I2C_IF_Open(I2C_MASTER_MODE_FST); display();
 
     GameStates state = START_SCREEN;
     ClearBuffer(&playerName);
+
+    // InitAWS();
     // FetchScoresFromAWS();
 
+    InitTimer(TICK_RATE_MS);
     while (1) {
-        // wait for a tick
+        WaitTicks(TICK_WAIT_RATE);
 
         int ret_val = -1;
         switch (state) {
@@ -175,7 +182,7 @@ void console_main() {
                break;
         }
 
-        // clear any mid-run ticks
+        ClearTicks();
     }
 }
 

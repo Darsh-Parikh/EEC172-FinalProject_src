@@ -1,6 +1,8 @@
 #ifndef TIMING_H
 #define TIMING_H
 
+#include "timer.h"
+
 //*****************************************************************************
 //
 //! This function updates the date and time of CC3200.
@@ -66,7 +68,37 @@ void tickIncrement() {
 
 //------------------------------------------------------------------------
 
+uint32_t timerTicks = 0;
 
+// Timer Interrupt Handler
+void TimerInterruptHandler(void) {
+    // Clear the timer interrupt
+    MAP_TimerIntClear(TIMERA0_BASE, TIMER_TIMA_TIMEOUT);
+
+    timerTicks++;
+}
+
+void InitTimer(uint32_t interval_ms) {
+    MAP_PRCMPeripheralClkEnable(PRCM_TIMERA0, PRCM_RUN_MODE_CLK);
+    TimerConfigure(TIMERA0_BASE, TIMER_CFG_PERIODIC);
+
+    uint32_t ui32Period = (80000000 / 1000) * interval_ms; // Assuming 80MHz clock
+    TimerLoadSet(TIMERA0_BASE, TIMER_A, ui32Period);
+
+    TimerIntRegister(TIMERA0_BASE, TIMER_A, TimerInterruptHandler);
+    TimerIntEnable(TIMERA0_BASE, TIMER_TIMA_TIMEOUT);
+
+    TimerEnable(TIMERA0_BASE, TIMER_A);
+}
+
+void WaitTicks(int num_ticks) {
+    uint32_t curr_ticks = timerTicks;
+    while (timerTicks < (curr_ticks + num_ticks));
+}
+
+void ClearTicks() {
+    timerTicks = 0;
+}
 
 
 #endif
