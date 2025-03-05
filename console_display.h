@@ -95,6 +95,14 @@ void drawFont(int x, int y, int color, int bg, int size){
     }
 }
 
+volatile int tick_count = 0;
+int tick_time = 80000000/100;
+
+void tickIncrement() {
+    MAP_UtilsDelay(tick_time);
+    tick_count++;
+}
+
 int display() {
     struct Entity player;
     player.type = PLAYER_TYPE;
@@ -107,7 +115,7 @@ int display() {
     drawRect(0,0,127,127,Color565(100,100,100));
     while(1) {
         drawEntity(&player);
-        // tickIncrement();
+        tickIncrement();
         clearEntity(&player);
         int ballAccel[2] = {
             GetAccel(X_Axis, X_Accel_PixelLimit),

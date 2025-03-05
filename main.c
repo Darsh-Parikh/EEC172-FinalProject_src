@@ -85,7 +85,7 @@ static void BoardInit(void) {
 #define CONTROLLER  0
 #define CONSOLE     1
 
-#define TARGET      CONTROLLER
+#define TARGET      CONSOLE
 
 void controller_main();
 void console_main();
@@ -119,8 +119,10 @@ void controller_main() {
 
 void console_main() {
     InitComm(1);
-    InitAWS();
-
+    //InitAWS();
+    I2C_IF_Open(I2C_MASTER_MODE_FST);   // setup I2C
+    InitOLED();
+    display();
 }
 
 void old_main() {
