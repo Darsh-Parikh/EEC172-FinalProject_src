@@ -7,10 +7,10 @@ struct Projectile {
     int x_pos;
     int y_pos;
     int radius;
-    int speed;
+    int speed; // movement speed of projectile
     int type;
     unsigned int color;
-    int time_since_spawn;
+    int time_since_spawn; // ticks since projectile was spawned
     int active;
 };
 typedef struct Projectile Projectile;
@@ -18,18 +18,18 @@ typedef struct Projectile Projectile;
 struct Entity {
    int x_pos;
    int y_pos;
-   int length;
-   int height;
-   int radius;
+   int length; // only used for specific shapes
+   int height; // only used for specific shapes
+   int radius; // only used for specific shapes
    int health;
-   int stored_effect;
-   int active_effect;
+   int stored_effect; // power up stored
+   int active_effect; // power up currently active
    unsigned int color;
-   int type;
-   int time_since_fire;
-   int time_since_spawn;
-   int active;
-   int num_shots;
+   int type; // player or type of enement
+   int time_since_fire; // ticks since last shot
+   int time_since_spawn; // ticks since last spawn
+   int active; // is entity active or dead
+   int num_shots; // number of active shots
    int fire_rate;
    Projectile shots[MAX_SHOTS_PER_ENEMY];
 };

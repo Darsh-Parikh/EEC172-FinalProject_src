@@ -103,6 +103,7 @@ void tickIncrement() {
     tick_count++;
 }
 
+// returns index of next shot to be activated
 int findNextShot(Entity *entity) {
     int index = 0;
     int num_found = 0;
@@ -114,6 +115,7 @@ int findNextShot(Entity *entity) {
     return -1;
 }
 
+// activate the next shot
 int shoot(Entity *entity) {
     int index = findNextShot(entity);
     if(index == -1) return -1;
@@ -126,6 +128,7 @@ int shoot(Entity *entity) {
     return 0;
 }
 
+// initialize all the shots
 void shotInit(Entity *entity) {
     int i = 0;
     for(i; i < MAX_SHOTS_PER_ENEMY; i++) {
