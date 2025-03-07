@@ -83,8 +83,8 @@ void StoreScore() {
 #define GOOGLE_DST_PORT       8443
 
 
-#define POSTHEADER "POST /things/DPCS_Lab4_CC3200/shadow HTTP/1.1\r\n"
-#define GETHEADER "GET /things/DPCS_Lab4_CC3200/shadow HTTP/1.1\r\n"
+#define POSTHEADER "POST /things/SpaceShooter_HighScores/shadow HTTP/1.1\r\n"
+#define GETHEADER "GET /things/SpaceShooter_HighScores/shadow HTTP/1.1\r\n"
 #define HOSTHEADER "Host: a3a2u3sc27qhxv-ats.iot.us-east-1.amazonaws.com\r\n"
 #define CHEADER "Connection: Keep-Alive\r\n"
 #define CTHEADER "Content-Type: application/json; charset=utf-8\r\n"
@@ -192,7 +192,7 @@ static int SendScoreToAWS() {
     char cCLLength[200];
     char* pcBufHeaders;
     int lRetVal = 0;
-    char data[BUFFER_SIZE];
+    char data[(MAX_LEADERBOARD_SIZE+1) * BUFFER_SIZE];
 
     // Constructing the JSON-like state string
     snprintf(data, sizeof(data),
@@ -282,6 +282,35 @@ void InitAWS() {
     }
 
     socketID = lRetVal;
+}
+
+void TestAWS() {
+    InitAWS();
+
+    strcpy(scoreBoard1_Name.buf, "Player 1");
+    scoreBoard1_Score = 100;
+
+    strcpy(scoreBoard2_Name.buf, "Player 2");
+    scoreBoard2_Score = 90;
+
+    strcpy(scoreBoard3_Name.buf, "Player 3");
+    scoreBoard3_Score = 80;
+
+    SendScoreToAWS();
+
+    ClearBuffer(&scoreBoard1_Name); scoreBoard1_Score = 0;
+    ClearBuffer(&scoreBoard2_Name); scoreBoard2_Score = 0;
+    ClearBuffer(&scoreBoard3_Name); scoreBoard3_Score = 0;
+
+    FetchScoresFromAWS();
+
+    Report("1st: %s , (%d)", scoreBoard1_Name.buf, scoreBoard1_Score);
+    Report("2nd: %s , (%d)", scoreBoard2_Name.buf, scoreBoard2_Score);
+    Report("3rd: %s , (%d)", scoreBoard3_Name.buf, scoreBoard3_Score);
+
+    while (1) {
+
+    }
 }
 
 

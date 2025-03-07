@@ -21,15 +21,36 @@ int Run_StartScreen() {
 
 // return 0 if game is running, 1 if it ended
 int Run_GameLoop() {
-    // move player & shots
+    int i = 0;
 
-    // move enemies & shots
+    clearEntity(&player);
+    for (i = 0; i < MAX_ENEMIES; i++) {
+        clearEntity(&(enemies[i]));
+    }
 
-    // detect enemy collisions
+    // get accelX and accelY
+    MovePlayerAndShots(0, 0);
+    MoveEnemiesAndAddShots();
 
-    // detect player collisions
+    int ended = CheckCollisions();
+    if (ended) {
+        return 1;
+    }
 
-    // is game running? return 1 if not
+    SpawnEnemies();
+
+    if (0 /* Button 1 */) {
+        PlayerShoot();
+    }
+
+    drawEntity(&player);
+    for (i = 0; i < MAX_ENEMIES; i++) {
+        drawEntity(&(enemies[i]));
+    }
+
+    for (i = 0; i < NUM_SPAWN_POINTS; i++) {
+        drawCircle(spawnPoints[i].x, spawnPoints[i].y, 1, RED);
+    }
 
     return 0;
 }
@@ -44,6 +65,18 @@ int Run_ScoreBoard() {
 
     // if Button1, return 1;
     // if LAST on IR, return 2;
+
+    return 0;
+}
+
+int InitGame() {
+    InitPlayer();
+    InitEnemySystem(5, 122);
+
+    ClearBuffer(&playerName);
+    playerScore = 0;
+
+    drawRect(0,0,127,127,Color565(100,100,100));
 
     return 0;
 }

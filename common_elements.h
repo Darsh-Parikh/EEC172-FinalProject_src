@@ -159,17 +159,55 @@ void moveShots(Entity *entity) {
 
 //-----------------------------------------------------
 
+Entity player;
+
+void InitPlayer() {
+    player.type = PLAYER_TYPE;
+    player.x_pos = 64;
+    player.y_pos = 100;
+    player.radius = 4;
+    player.color = Color565(000,200,200);
+    player.num_shots = 0;
+    player.fire_rate = 25;
+    player.time_since_fire = 0;
+    shotInit(&player);
+}
+
+void MovePlayerAndShots(int accelX, int accelY) {
+    int ballLoc[2] = {player.x_pos, player.y_pos};
+    int ballVel[2] = {0,0};
+    int ballAccel[2] = { accelX, accelY };
+
+    MoveBall(ballLoc, ballVel, ballAccel, 0);
+    player.x_pos = ballLoc[0];
+    player.y_pos = ballLoc[1];
+    player.time_since_fire++;
+    if(player.x_pos < player.radius + 1) player.x_pos = player.radius + 1;
+    if(player.x_pos > 125 - player.radius) player.x_pos = 125 - player.radius;
+    if(player.y_pos < player.radius + 1) player.y_pos = player.radius + 1;
+    if(player.y_pos > 125 - player.radius) player.y_pos = 125 - player.radius;
+
+    moveShots(&player);
+}
+
+void PlayerShoot() {
+    if(player.num_shots <= MAX_SHOTS_PER_ENEMY && player.time_since_fire >= (100 / player.fire_rate)) {
+        if(!shoot(&player)) {
+            player.num_shots++;
+            player.time_since_fire = 0;
+        }
+    }
+}
+
+//-----------------------------------------------------
+
 #define MAX_ENEMIES 5
 #define NUM_SPAWN_POINTS 3
-#define SPAWN_COOLDOWN 5.0f     // New enemy every 5 seconds
-#define RELOAD_RATE 3.0f        // Enemy can fire every 3 seconds
 
 typedef struct {
     float x, y;
     float timeSinceLastSpawn;
 } SpawnPoint;
-
-//-----------------------------------------------------------
 
 // List of spawn points
 SpawnPoint spawnPoints[NUM_SPAWN_POINTS];
@@ -178,8 +216,6 @@ SpawnPoint spawnPoints[NUM_SPAWN_POINTS];
 Entity enemies[MAX_ENEMIES];
 int num_enemies;
 float timeSinceLastSpawn = 0.0f;
-
-//-----------------------------------------------------------
 
 void SpawnEnemy(Entity *enemy, int start_x, int start_y) {
    enemy->x_pos = start_x;
@@ -210,7 +246,7 @@ void InitEnemySystem(int minSpawnPoint, int maxSpawnPoint) {
     float xSpacing = (maxSpawnPoint - minSpawnPoint) / (NUM_SPAWN_POINTS - 1);
     for (i = 0; i < NUM_SPAWN_POINTS; i++) {
         spawnPoints[i].x = minSpawnPoint + i * xSpacing;
-        spawnPoints[i].y = 127;
+        spawnPoints[i].y = 2;
         spawnPoints[i].timeSinceLastSpawn = 0.0f;
     }
 
@@ -221,13 +257,14 @@ void SpawnEnemies() {
         return;
     }
 
-    float spawnThreshold = 3.0f;  // Minimum time since last spawn to be considered valid
+    float spawnThreshold = 10.0f;  // Minimum time since last spawn to be considered valid
     int validSpawnPoints[NUM_SPAWN_POINTS];
     int validCount = 0;
 
     // Find spawn points that are above the threshold
     int i = 0;
     for (i = 0; i < NUM_SPAWN_POINTS; i++) {
+        spawnPoints[i].timeSinceLastSpawn++;
         if (spawnPoints[i].timeSinceLastSpawn >= spawnThreshold) {
             validSpawnPoints[validCount++] = i;
         }
@@ -253,7 +290,7 @@ void SpawnEnemies() {
     num_enemies++;
 }
 
-void MoveEnemies() {
+void MoveEnemiesAndAddShots() {
     int i = 0;
     for (i = 0; i < MAX_ENEMIES; i++) {
         if (enemies[i].active) {
@@ -286,9 +323,12 @@ void MoveEnemies() {
 }
 
 /**
- * Check for collisions between player shots and enemies.
+ * Check for collisions between player shots and enemies, as well as enemy shots and player.
+ * Return -1 if the Player has died
  */
-void CheckEnemyCollisions(Projectile *playerShots) {
+int CheckCollisions() {
+    Projectile *playerShots = &(player.shots);
+
     int i = 0;
     for (i = 0; i < MAX_SHOTS_PER_ENEMY; i++) {
         if (!playerShots[i].active) {
@@ -316,6 +356,37 @@ void CheckEnemyCollisions(Projectile *playerShots) {
             }
         }
     }
+
+    for (i = 0; i < MAX_ENEMIES; i++) {
+        if (!enemies[i].active) {
+            continue;
+        }
+
+        Projectile *enemyShots = &(enemies[i].shots);
+
+        int j = 0;
+        for (j = 0; j < MAX_SHOTS_PER_ENEMY; j++) {
+
+
+            float dx = enemyShots[i].x_pos - player.x_pos;
+            float dy = enemyShots[i].y_pos - player.y_pos;
+            float distanceSquared = dx * dx + dy * dy;
+            float hitRadiusSquared = player.radius * player.radius;
+
+            if (distanceSquared <= hitRadiusSquared) { // Collision detected
+                player.health -= enemyShots[i].damage;
+                enemyShots[i].active = 0; // Shot disappears
+
+                if (player.health <= 0) {
+                    player.active = 0; // Enemy is defeated
+                    return 1;
+                }
+            }
+
+        }
+    }
+
+    return 0;
 }
 
 

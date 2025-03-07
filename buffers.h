@@ -14,8 +14,6 @@ typedef struct {
     char terminator;
 } Buffer_t;
 
-Buffer_t PlayerName = {0, {}, BUFFER_SIZE-1, '\0'};
-
 void ClearBuffer(Buffer_t *buff) {
     buff->pos = 0;
     buff->buf[0] = buff->terminator;

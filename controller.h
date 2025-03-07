@@ -38,6 +38,8 @@ int Control() {
         if(!new_press) tv_press = tv_press_prev;
         // Send over UART
         StoreControllerData(button1state, button2state, accelX, accelY, tv_press, new_press);
+        CommsTransferControllerData();
+
         Report("but1: %d, but2: %d, accx: %d, accy: %d, btn: %c, btnst: %d",button1state, button2state, accelX, accelY, tv_press, new_press);
         Report("\r\n");
     }

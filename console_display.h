@@ -21,14 +21,6 @@
 
 //-----------------------------------------------------------------------------
 
-void drawEntity(Entity *entity) {
-    fillCircle(entity->x_pos,entity->y_pos,entity->radius,entity->color);
-}
-
-void clearEntity(Entity *entity) {
-    fillCircle(entity->x_pos,entity->y_pos,entity->radius,BLACK);
-}
-
 void drawText(int x, int y, char* text, int color, int bg, int size){
     int i = 0;
     while(text[i] != '\0'){
@@ -72,6 +64,16 @@ void clearShots(Entity *entity) {
             fillCircle(entity->shots[i].x_pos,entity->shots[i].y_pos,entity->shots[i].radius,BLACK);
         }
     }
+}
+
+void drawEntity(Entity *entity) {
+    fillCircle(entity->x_pos,entity->y_pos,entity->radius,entity->color);
+    drawShots(entity);
+}
+
+void clearEntity(Entity *entity) {
+    fillCircle(entity->x_pos,entity->y_pos,entity->radius,BLACK);
+    clearShots(entity);
 }
 
 //----------------------------------------------------------
